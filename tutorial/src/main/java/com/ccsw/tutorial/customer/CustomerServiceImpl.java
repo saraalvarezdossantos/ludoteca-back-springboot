@@ -41,12 +41,11 @@ public class CustomerServiceImpl implements CustomerService {
             customer = this.customerRepository.findById(id).orElse(null);
         }
 
-        customer.setName(dto.getName());
-        //dejar guardar solo si no existe el nombre:
-        if (customerRepository.findByName(customer.getName()).isPresent()) {
+        //Para dejar guardar solo si no existe el nombre en la BDD:
+        if (customerRepository.findByName(dto.getName()).isPresent()) {
             throw new Exception("Customer with name '" + customer.getName() + "' already exists");
         }
-
+        customer.setName(dto.getName());
         this.customerRepository.save(customer);
     }
 
