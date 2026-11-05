@@ -1,5 +1,12 @@
 package com.ccsw.tutorial.customer;
 
-public class CustomerRepository {
+import com.ccsw.tutorial.customer.model.Customer;
+import org.springframework.data.repository.CrudRepository;
+
+/**
+ * @author saraalvarezdossantos
+ *
+ */
+public interface CustomerRepository extends CrudRepository<Customer, Long> {
 
 }
