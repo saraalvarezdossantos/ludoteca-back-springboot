@@ -11,6 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ *
+ * @author saraalvarezdossantos
+ *
+ */
 @Tag(name = "Customer", description = "API of Customer")
 @RequestMapping(value = "/customer")
 @RestController
