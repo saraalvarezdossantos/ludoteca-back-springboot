@@ -44,7 +44,7 @@ public class CustomerTest {
     }
 
     @Test
-    public void saveNotExistsCustomerIdShouldInsert() {
+    public void saveNotExistsCustomerIdShouldInsert() throws Exception {
 
         CustomerDto customerDto = new CustomerDto();
         customerDto.setName(CUSTOMER_NAME);
@@ -59,7 +59,7 @@ public class CustomerTest {
     }
 
     @Test
-    public void saveExistsCustomerIdShouldUpdate() {
+    public void saveExistsCustomerIdShouldUpdate() throws Exception {
 
         CustomerDto customerDto = new CustomerDto();
         customerDto.setName(CUSTOMER_NAME);

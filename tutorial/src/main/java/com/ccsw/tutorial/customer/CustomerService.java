@@ -24,11 +24,12 @@ public interface CustomerService {
 
     /**
      * Método para crear o actualizar un Customer
+     * Verifica que no se pueda insertar un Customer con nombre que ya exista en la BDD
      *
      * @param id PK de la entidad
      * @param dto datos de la entidad
      */
-    void save(Long id, CustomerDto dto);
+    void save(Long id, CustomerDto dto) throws Exception;
 
     /**
      * Método para borrar un Customer

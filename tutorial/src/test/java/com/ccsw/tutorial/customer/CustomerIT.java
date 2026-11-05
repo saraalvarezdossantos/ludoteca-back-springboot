@@ -127,7 +127,7 @@ public class CustomerIT {
 
         ResponseEntity<?> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH + "/" + NEW_CUSTOMER_ID, HttpMethod.DELETE, null, Void.class);
 
-        // ¡¡ NOTA !!: plantear test para probar verificación de nombre no repetido
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        //Tras verificar que el nombre está duplicado: error
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }

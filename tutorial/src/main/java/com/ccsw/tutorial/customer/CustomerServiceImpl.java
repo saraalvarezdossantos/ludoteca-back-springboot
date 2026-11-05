@@ -31,16 +31,21 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void save(Long id, CustomerDto dto) {
+    public void save(Long id, CustomerDto dto) throws Exception {
         Customer customer;
-        //Comprobar si ya existe:
+        //Comprobar si no existe:
         if (id == null) {
             customer = new Customer();
         } else {
+            //si ya existe:
             customer = this.customerRepository.findById(id).orElse(null);
         }
-        //asignar o actualizar nombre:
+
         customer.setName(dto.getName());
+        //dejar guardar solo si no existe el nombre:
+        if (customerRepository.findByName(customer.getName()).isPresent()) {
+            throw new Exception("Customer with name '" + customer.getName() + "' already exists");
+        }
 
         this.customerRepository.save(customer);
     }
