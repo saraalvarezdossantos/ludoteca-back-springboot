@@ -38,3 +38,16 @@ VALUES ('Cliente de prueba 2');
 INSERT INTO customer(name)
 VALUES ('Cliente de prueba 3');
 
+INSERT INTO loan(game_id, customer_id, start_date, end_date)
+VALUES (1, 1, '2026-11-01', '2026-11-10');
+INSERT INTO loan(game_id, customer_id, start_date, end_date)
+VALUES (2, 2, '2026-11-03', '2026-11-08');
+INSERT INTO loan(game_id, customer_id, start_date, end_date)
+VALUES (3, 1, '2026-11-05', '2026-11-15');
+INSERT INTO loan(game_id, customer_id, start_date, end_date)
+VALUES (4, 3, '2026-11-12', '2026-11-20');
+INSERT INTO loan(game_id, customer_id, start_date, end_date)
+VALUES (5, 2, '2026-11-16', '2026-11-25');
+INSERT INTO loan(game_id, customer_id, start_date, end_date)
+VALUES (6, 3, '2026-11-18', '2026-11-28');
+

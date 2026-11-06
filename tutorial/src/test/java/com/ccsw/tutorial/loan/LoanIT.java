@@ -27,7 +27,7 @@ public class LoanIT {
     public static final String LOCALHOST = "http://localhost:";
     public static final String SERVICE_PATH = "/loan";
 
-    private static final int TOTAL_LOANS = 0; //actualizar cuando complete
+    private static final int TOTAL_LOANS = 6;
     private static final int PAGE_SIZE = 5;
 
     @LocalServerPort
@@ -48,11 +48,13 @@ public class LoanIT {
         ResponseEntity<ResponsePage<LoanDto>> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.POST, new HttpEntity<>(searchDto), responseTypePage);
 
         assertNotNull(response);
+        System.out.println(response.getBody().getTotalElements());
+        System.out.println(response.getBody().getContent().size());
+
         assertEquals(TOTAL_LOANS, response.getBody().getTotalElements());
         assertEquals(PAGE_SIZE, response.getBody().getContent().size());
     }
-
-    /*  PENDIENTE DE IMPLEMENTACIÓN
+    
     @Test
     public void findSecondPageWithFiveSizeShouldReturnLastResults() {
 
@@ -67,5 +69,4 @@ public class LoanIT {
         assertEquals(TOTAL_LOANS, response.getBody().getTotalElements());
         assertEquals(elementsCount, response.getBody().getContent().size());
     }
-    */
 }
