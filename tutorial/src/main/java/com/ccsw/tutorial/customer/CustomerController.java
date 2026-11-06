@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  *
  */
 @Tag(name = "Customer", description = "API of Customer")
-@RequestMapping(value = "/customer")
+@RequestMapping(value = "/customers")
 @RestController
 @CrossOrigin(origins = "*")
 public class CustomerController {
