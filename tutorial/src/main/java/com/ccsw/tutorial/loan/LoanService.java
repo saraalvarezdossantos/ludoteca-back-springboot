@@ -1,4 +1,4 @@
 package com.ccsw.tutorial.loan;
 
-public class LoanService {
+public interface LoanService {
 }
