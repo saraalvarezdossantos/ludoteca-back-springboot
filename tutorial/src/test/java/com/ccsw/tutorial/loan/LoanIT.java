@@ -16,6 +16,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -36,6 +38,9 @@ public class LoanIT {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @Autowired
+    private LoanService loanService;
+
     ParameterizedTypeReference<ResponsePage<LoanDto>> responseTypePage = new ParameterizedTypeReference<ResponsePage<LoanDto>>() {
     };
 
@@ -54,7 +59,7 @@ public class LoanIT {
         assertEquals(TOTAL_LOANS, response.getBody().getTotalElements());
         assertEquals(PAGE_SIZE, response.getBody().getContent().size());
     }
-    
+
     @Test
     public void findSecondPageWithFiveSizeShouldReturnLastResults() {
 
@@ -69,4 +74,99 @@ public class LoanIT {
         assertEquals(TOTAL_LOANS, response.getBody().getTotalElements());
         assertEquals(elementsCount, response.getBody().getContent().size());
     }
+
+    // TESTS FILTRADO:
+
+    @Test
+    public void findWithoutFiltersShouldReturnAllLoansInDB() {
+
+        LoanSearchDto searchDto = new LoanSearchDto();
+        searchDto.setPageable(new PageableRequest(0, TOTAL_LOANS));
+
+        ResponseEntity<ResponsePage<LoanDto>> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.POST, new HttpEntity<>(searchDto), responseTypePage);
+
+        assertNotNull(response);
+        assertEquals(TOTAL_LOANS, response.getBody().getTotalElements());
+        assertEquals(TOTAL_LOANS, response.getBody().getContent().size());
+    }
+
+    @Test
+    public void findWithGameFilterShouldReturnOnlyMatchingLoans() {
+        LoanSearchDto searchDto = new LoanSearchDto();
+        searchDto.setGameId(1L);
+        searchDto.setPageable(new PageableRequest(0, PAGE_SIZE));
+
+        ResponseEntity<ResponsePage<LoanDto>> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.POST, new HttpEntity<>(searchDto), responseTypePage);
+
+        assertNotNull(response);
+        assertEquals(1, response.getBody().getTotalElements());
+        assertEquals(1, response.getBody().getContent().size());
+    }
+
+    //NOTA IMPORTANTE: filtro FECHA BUSCA préstamos activos, no que coincidan con la fecha:
+
+    /* El 06/11/2026 están activos:
+        Loan 1 (01 -> 10)
+        Loan 2 (03 -> 08)
+        Loan 3 (05 -> 15) */
+    @Test
+    public void findWithDateFilterShouldReturnThreeResults() {
+
+        LoanSearchDto searchDto = new LoanSearchDto();
+        searchDto.setDate(LocalDate.of(2026, 11, 6));
+        searchDto.setPageable(new PageableRequest(0, PAGE_SIZE));
+
+        ResponseEntity<ResponsePage<LoanDto>> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.POST, new HttpEntity<>(searchDto), responseTypePage);
+
+        assertNotNull(response);
+        assertEquals(3, response.getBody().getTotalElements());
+    }
+
+    @Test
+    public void findWithDateFilterShouldReturnZeroResults() {
+
+        LoanSearchDto searchDto = new LoanSearchDto();
+        searchDto.setDate(LocalDate.of(2026, 11, 30));
+        searchDto.setPageable(new PageableRequest(0, PAGE_SIZE));
+
+        ResponseEntity<ResponsePage<LoanDto>> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.POST, new HttpEntity<>(searchDto), responseTypePage);
+
+        assertNotNull(response);
+        assertEquals(0, response.getBody().getTotalElements());
+    }
+
+    /* CLIENTE 1 tiene activos el día 6:
+        Loan 1 (01 -> 10)
+        Loan 3 (05 -> 15)
+     */
+    @Test
+    public void findWithCustomerAndDateFilterShouldReturnTwoResults() {
+
+        LoanSearchDto searchDto = new LoanSearchDto();
+        searchDto.setCustomerId(1L);
+        searchDto.setDate(LocalDate.of(2026, 11, 6));
+        searchDto.setPageable(new PageableRequest(0, PAGE_SIZE));
+
+        ResponseEntity<ResponsePage<LoanDto>> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.POST, new HttpEntity<>(searchDto), responseTypePage);
+
+        assertNotNull(response);
+        assertEquals(2, response.getBody().getTotalElements());
+    }
+
+    /* REVISAAAAR si planteo más tests
+     */
+    @Test
+    public void findWithGameAndCustomerFilterShouldReturnOneResult() {
+
+        LoanSearchDto searchDto = new LoanSearchDto();
+        searchDto.setGameId(1L);
+        searchDto.setCustomerId(1L);
+        searchDto.setPageable(new PageableRequest(0, PAGE_SIZE));
+
+        ResponseEntity<ResponsePage<LoanDto>> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.POST, new HttpEntity<>(searchDto), responseTypePage);
+
+        assertNotNull(response);
+        assertEquals(1, response.getBody().getTotalElements());
+    }
+
 }

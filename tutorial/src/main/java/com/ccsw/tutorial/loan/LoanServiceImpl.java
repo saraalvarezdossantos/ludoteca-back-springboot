@@ -1,5 +1,6 @@
 package com.ccsw.tutorial.loan;
 
+import com.ccsw.tutorial.common.criteria.SearchCriteria;
 import com.ccsw.tutorial.loan.model.Loan;
 import com.ccsw.tutorial.loan.model.LoanDto;
 import com.ccsw.tutorial.loan.model.LoanSearchDto;
@@ -7,6 +8,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,7 +37,45 @@ public class LoanServiceImpl implements LoanService {
      */
     @Override
     public Page<Loan> findPage(LoanSearchDto dto) {
-        return this.loanRepository.findAll(dto.getPageable().getPageable());
+/*
+        Specification<Loan> specification = Specification.where((Specification<Loan>) null);
+
+        if (dto.getGameId() != null) {
+            specification = specification.and(new LoanSpecification(new SearchCriteria("game.id", ":", dto.getGameId())));
+        }
+
+        if (dto.getCustomerId() != null) {
+            specification = specification.and(new LoanSpecification(new SearchCriteria("customer.id", ":", dto.getCustomerId())));
+        }
+
+        if (dto.getDate() != null) {
+
+            specification = specification.and(new LoanSpecification(new SearchCriteria("startDate", "<=", dto.getDate())));
+
+            specification = specification.and(new LoanSpecification(new SearchCriteria("endDate", ">=", dto.getDate())));
+        }
+
+        return this.loanRepository.findAll(specification, dto.getPageable().getPageable());
+    */
+
+        Specification<Loan> specification = (root, query, builder) -> builder.conjunction();
+
+        if (dto.getGameId() != null) {
+            specification = specification.and(new LoanSpecification(new SearchCriteria("game.id", ":", dto.getGameId())));
+        }
+
+        if (dto.getCustomerId() != null) {
+            specification = specification.and(new LoanSpecification(new SearchCriteria("customer.id", ":", dto.getCustomerId())));
+        }
+
+        if (dto.getDate() != null) {
+            specification = specification.and(new LoanSpecification(new SearchCriteria("startDate", "<=", dto.getDate())));
+
+            specification = specification.and(new LoanSpecification(new SearchCriteria("endDate", ">=", dto.getDate())));
+        }
+
+        return this.loanRepository.findAll(specification, dto.getPageable().getPageable());
+
     }
 
     /**
