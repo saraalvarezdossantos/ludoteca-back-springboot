@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.List;
+
 /**
  * @author saraalvarezdossantos
  *
@@ -19,4 +21,10 @@ public interface LoanRepository extends CrudRepository<Loan, Long>, JpaSpecifica
      */
     Page<Loan> findAll(Pageable pageable);
 
+    /**
+     * Método para recuperar un Lona por el id de su Game
+     * @param Long id
+     * @return {@link Loan}
+     */
+    List<Loan> findByGame_id(Long id);
 }

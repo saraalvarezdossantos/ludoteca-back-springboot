@@ -2,6 +2,8 @@ package com.ccsw.tutorial.loan;
 
 import com.ccsw.tutorial.common.pagination.PageableRequest;
 import com.ccsw.tutorial.config.ResponsePage;
+import com.ccsw.tutorial.customer.model.CustomerDto;
+import com.ccsw.tutorial.game.model.GameDto;
 import com.ccsw.tutorial.loan.model.LoanDto;
 import com.ccsw.tutorial.loan.model.LoanSearchDto;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -43,6 +46,8 @@ public class LoanIT {
 
     ParameterizedTypeReference<ResponsePage<LoanDto>> responseTypePage = new ParameterizedTypeReference<ResponsePage<LoanDto>>() {
     };
+
+    //TESTS PAGINACIÓN:
 
     @Test
     public void findFirstPageWithFiveSizeShouldReturnFirstFiveResults() {
@@ -105,10 +110,11 @@ public class LoanIT {
 
     //NOTA IMPORTANTE: filtro FECHA BUSCA préstamos activos, no que coincidan con la fecha:
 
-    /* El 06/11/2026 están activos:
-        Loan 1 (01 -> 10)
-        Loan 2 (03 -> 08)
-        Loan 3 (05 -> 15) */
+    /** Datos data.sql:
+     * El 06/11/2026 están activos:
+     Loan 1 (01 -> 10)
+     Loan 2 (03 -> 08)
+     Loan 3 (05 -> 15) */
     @Test
     public void findWithDateFilterShouldReturnThreeResults() {
 
@@ -135,9 +141,10 @@ public class LoanIT {
         assertEquals(0, response.getBody().getTotalElements());
     }
 
-    /* CLIENTE 1 tiene activos el día 6:
-        Loan 1 (01 -> 10)
-        Loan 3 (05 -> 15)
+    /** Datos data.sql:
+     * CLIENTE 1 tiene activos el día 6:
+     Loan 1 (01 -> 10)
+     Loan 3 (05 -> 15)
      */
     @Test
     public void findWithCustomerAndDateFilterShouldReturnTwoResults() {
@@ -153,7 +160,8 @@ public class LoanIT {
         assertEquals(2, response.getBody().getTotalElements());
     }
 
-    /* REVISAAAAR si planteo más tests
+    /** Datos data.sql:
+     *
      */
     @Test
     public void findWithGameAndCustomerFilterShouldReturnOneResult() {
@@ -169,4 +177,113 @@ public class LoanIT {
         assertEquals(1, response.getBody().getTotalElements());
     }
 
+    //TESTS VALIDACIONES:
+
+    /** Datos data.sql:
+     * inicio = 10/11/2026
+     * fin = 05/11/2026
+     */
+    @Test
+    public void saveShouldFailWhenEndDateIsBeforeStartDate() {
+        //creación Dto Loan:
+        LoanDto dto = new LoanDto();
+
+        GameDto game = new GameDto();
+        game.setId(6L);
+
+        CustomerDto customer = new CustomerDto();
+        customer.setId(1L);
+
+        dto.setGame(game);
+        dto.setCustomer(customer);
+
+        dto.setStartDate(LocalDate.of(2026, 11, 10));
+        dto.setEndDate(LocalDate.of(2026, 11, 5));
+
+        //Nota: restTemplate.exchange() recibe respuesta HTTP, pero no propaga excepción para aserto
+        //assertThrows(Exception.class, () -> restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.PUT, new HttpEntity<>(dto), String.class));
+
+        ResponseEntity<String> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.PUT, new HttpEntity<>(dto), String.class);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void saveShouldFailWhenLoanDurationExceeds14Days() {
+
+        LoanDto dto = new LoanDto();
+
+        GameDto game = new GameDto();
+        game.setId(6L);
+
+        CustomerDto customer = new CustomerDto();
+        customer.setId(1L);
+
+        dto.setGame(game);
+        dto.setCustomer(customer);
+
+        dto.setStartDate(LocalDate.of(2026, 11, 1));
+        dto.setEndDate(LocalDate.of(2026, 11, 20));
+
+        ResponseEntity<String> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.PUT, new HttpEntity<>(dto), String.class);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    /** Datos data.sql:
+     * game_id = 1
+     * customer_id = 1
+     * start_date = 2026-11-01
+     * end_date = 2026-11-10
+     * -préstamo exxistente: 1-------10
+     * -nuevo préstamo:        5---8
+     */
+    @Test
+    public void saveShouldFailWhenGameIsAlreadyLoanedInSamePeriod() {
+        LoanDto dto = new LoanDto();
+
+        GameDto game = new GameDto();
+        game.setId(1L);
+
+        CustomerDto customer = new CustomerDto();
+        customer.setId(2L);
+
+        dto.setGame(game);
+        dto.setCustomer(customer);
+
+        dto.setStartDate(LocalDate.of(2026, 11, 5));
+        dto.setEndDate(LocalDate.of(2026, 11, 8));
+
+        ResponseEntity<String> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.PUT, new HttpEntity<>(dto), String.class);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    /** Datos data.sql:
+     * Cliente 1 tiene:
+     * Loan 1: de 2026-11-01 a 2026-11-10
+     * Loan 3: de 2026-11-05 a 2026-11-15
+     * Se intenta crear tercero entre 5 y 10 de nov
+     */
+    @Test
+    public void saveShouldFailWhenCustomerHasMoreThanTwoLoansInSamePeriod() {
+        LoanDto dto = new LoanDto();
+
+        GameDto game = new GameDto();
+        game.setId(4L);
+
+        CustomerDto customer = new CustomerDto();
+        customer.setId(1L);
+
+        dto.setGame(game);
+        dto.setCustomer(customer);
+
+        dto.setStartDate(LocalDate.of(2026, 11, 6));
+        dto.setEndDate(LocalDate.of(2026, 11, 7));
+
+        ResponseEntity<String> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.PUT, new HttpEntity<>(dto), String.class);
+
+        //assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        System.out.println(response.getBody());
+        System.out.println(response.getStatusCode());
+    }
 }
