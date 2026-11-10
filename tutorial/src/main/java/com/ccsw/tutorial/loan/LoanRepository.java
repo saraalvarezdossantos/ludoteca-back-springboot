@@ -22,9 +22,16 @@ public interface LoanRepository extends CrudRepository<Loan, Long>, JpaSpecifica
     Page<Loan> findAll(Pageable pageable);
 
     /**
-     * Método para recuperar un Lona por el id de su Game
+     * Método para recuperar Loans por el id de su Game
      * @param Long id
      * @return {@link Loan}
      */
     List<Loan> findByGame_id(Long id);
+
+    /**
+     * Método para recuperar Loans por el id de su Customer
+     * @param Long id
+     * @return {@link Loan}
+     */
+    List<Loan> findByCustomer_id(Long id);
 }

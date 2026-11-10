@@ -89,16 +89,16 @@ public class LoanServiceImpl implements LoanService {
         loan.setGame(gameService.get(dto.getGame().getId()));
         loan.setCustomer(customerService.get(dto.getCustomer().getId()));
 
-        //Validaciones:
+        //Validación: fecha de fin > inicio
         if (dto.getEndDate().isBefore(dto.getStartDate())) {
             throw new IllegalArgumentException("La fecha de fin no puede ser anterior a la fecha de inicio");
         }
-
+        // duración préstamo
         long diffDays = ChronoUnit.DAYS.between(dto.getStartDate(), dto.getEndDate());
         if (diffDays > 14) {
             throw new IllegalArgumentException("La duración máxima del préstamo es de 14 días");
         }
-
+        //Validación: préstamos no se deben solapar
         List<Loan> loans = loanRepository.findByGame_id(dto.getGame().getId());
         for (Loan existingloan : loans) {
             if (id != null && existingloan.getId().equals(id)) {
@@ -106,13 +106,27 @@ public class LoanServiceImpl implements LoanService {
             }
             boolean overlap = !dto.getEndDate().isBefore(existingloan.getStartDate()) && !dto.getStartDate().isAfter(existingloan.getEndDate());
             if (overlap) {
-                System.out.println("VALIDACION JUEGO");  //depurar
+                //System.out.println("VALIDACION JUEGO");  //depurar
                 throw new IllegalArgumentException("El juego ya está prestado en esas fechas");
             }
         }
+        //Validación: un cliente no puede tener >2 préstamos simultáneos
+        List<Loan> customerLoans = loanRepository.findByCustomer_id(dto.getCustomer().getId());
 
-        System.out.println("GAME: " + loan.getGame());  //depurar
-        System.out.println("CUSTOMER: " + loan.getCustomer());
+        int overlappingLoans = 0;
+        for (Loan existingLoan : customerLoans) {
+            if (id != null && existingLoan.getId().equals(id)) {
+                continue;
+            }
+            boolean overlap = !dto.getEndDate().isBefore(existingLoan.getStartDate()) && !dto.getStartDate().isAfter(existingLoan.getEndDate());
+            if (overlap) {
+                overlappingLoans++;
+            }
+        }
+        if (overlappingLoans >= 2) {
+            throw new IllegalArgumentException("El cliente ya tiene dos préstamos simultáneos");
+        }
+
         this.loanRepository.save(loan);
     }
 

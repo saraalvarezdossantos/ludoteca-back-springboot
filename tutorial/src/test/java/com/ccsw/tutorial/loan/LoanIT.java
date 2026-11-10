@@ -282,8 +282,6 @@ public class LoanIT {
 
         ResponseEntity<String> response = restTemplate.exchange(LOCALHOST + port + SERVICE_PATH, HttpMethod.PUT, new HttpEntity<>(dto), String.class);
 
-        //assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        System.out.println(response.getBody());
-        System.out.println(response.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }
